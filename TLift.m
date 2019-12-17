@@ -1,5 +1,5 @@
 function out_score = TLift(in_score, gal_cam_id, gal_time, prob_cam_id, prob_time, ...
-num_cams, tau, sigma, K)
+num_cams, tau, sigma, K, alpha)
 %% Function for the Temporal Lifting (TLift) method
 %  TLift is a model-free temporal cooccurrence based score weighting method proposed in 
 %  "Interpretable and Generalizable Deep Image Matching with Query-adaptive Convolutions".
@@ -13,12 +13,13 @@ num_cams, tau, sigma, K)
 %      tau: the interval threshold to define nearby persons.
 %      sigma: the sensitivity parameter of the time difference.
 %      K: parameter of the top K retrievals used to define the pivot set P.
+%      alpha: regularizer for the multiplication fusion.
 %      All the cam_id and time inputs are column vectors, and they are in the same order corresponding to 
 %      rows (gallery) or columns (probe) of the in_score.
 %  Outputs:
 %      out_score: the refined score by TLift, with the same size as the in_score.
 %  Version:
-%      1.0, June 27, 2019
+%      1.01, 16-12-2019
 %  Author:
 %      Shengcai Liao
 %      scliao@ieee.org
@@ -42,7 +43,7 @@ for g_cam = 1 : num_cams
     score{g_cam} = in_score(g_sam_index{g_cam}, :);
     frame_id = gal_time(g_sam_index{g_cam});
     gal_time_diff{g_cam} = frame_id - frame_id';
-end  
+end
 
 for p_cam = 1 : num_cams
     p_sam_index = find(prob_cam_id == p_cam);
@@ -50,24 +51,26 @@ for p_cam = 1 : num_cams
     np = length(p_sam_index);
     
     for g_cam = 1 : num_cams
-        if p_cam == g_cam
-            continue; % no need to evaluate within-camera pairs
-        end
+## No need to evaluate within-camera pairs, but in some public datasets 
+##  they still evaluate negative pairs in the same camera.
+##        if p_cam == g_cam
+##            continue;
+##        end
         
         prob_score = score{g_cam}(:, p_sam_index);
-        coo_dt = prob_time_diff(p_sam_index, p_sam_index);
-        coo_w = exp(-coo_dt.^2 / sigma^2);
-        
+
         for i = 1 : np        
             cooccur_index = find(c_mask(:, i));
             cooccur_score = prob_score(:, cooccur_index);
             [r, index] = sort(cooccur_score(:), 'descend');
             thr = r(K);
-            mask_in_gal = any(cooccur_score > thr, 2);
+            mask_in_gal = any(cooccur_score >= thr, 2);
             
             dt = gal_time_diff{g_cam}(:, mask_in_gal);
             weight = mean(exp(-dt.^2 / sigma^2), 2);
-            out_score(g_sam_index{g_cam}, p_sam_index(i)) = weight .* prob_score(:, i);
+            out_score(g_sam_index{g_cam}, p_sam_index(i)) = weight;
         end
     end
 end
+
+out_score = (out_score + alpha) .* in_score;
