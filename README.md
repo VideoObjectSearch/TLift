@@ -18,8 +18,15 @@ offset, and made a cumulative record by assuming the video sessions were continu
 numbers were converted to seconds in time by dividing the Frames Per Second (FPS) in video records, where FPS=59.94 
 for the DukeMTMC-reID dataset and FPS=25 for the Market-1501 dataset.
 
-Default parameters are K = tau = sigma = 100, and alpha = 0.1.
+Default parameters are tau=100, sigma=200, K=10, and alpha=0.2. They are not sensitive in a broad range, as analyzed in the Appendix of our paper [1].
 
 
-# Reference:
-[1] Shengcai Liao and Ling Shao, "Interpretable and Generalizable Person Re-identification with Query-adaptive Convolution and Temporal Lifting." In arXiv preprint, arXiv:1904.10424, 2019.
+# Citation
+[1] Shengcai Liao and Ling Shao, "Interpretable and Generalizable Person Re-Identification with Query-Adaptive Convolution and Temporal Lifting." In the 16th European Conference on Computer Vision (ECCV), 23-28 August, 2020.
+
+@inproceedings{Liao-ECCV2020-QAConv,  
+  title={{Interpretable and Generalizable Person Re-Identification with Query-Adaptive Convolution and Temporal Lifting}},  
+  author={Shengcai Liao and Ling Shao},  
+  booktitle={European Conference on Computer Vision (ECCV)},  
+  year={2020}  
+}
